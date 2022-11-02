@@ -1,4 +1,4 @@
-# vue2
+# Toolbox - collection of helper tools from internet
 
 ## Project setup
 ```
