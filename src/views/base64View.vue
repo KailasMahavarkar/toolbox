@@ -127,7 +127,15 @@
 
 			<div class="divider"></div>
 			<h1 class="ml-5">Code snippet (base62/64)</h1>
-			<div class="bg-base-300 px-5 rounded-md">
+
+			<div class="flex flex-col bg-base-300 px-5 rounded-md child:m-0 ">
+                <div class="flex items-center justify-end">
+                    <div class="btn btn-primary btn-xs mt-2 rounded-b-none"
+                        @click="copyCodeSnippet"
+                    >
+                        copy
+                    </div> 
+                </div>
 				<pre wrap="whitespace-normal">
                     <code >
                         {{ codeString }}
@@ -185,6 +193,9 @@ export default {
 		copyEncryptedText() {
 			navigator.clipboard.writeText(this.outputText);
 		},
+        copyCodeSnippet() {
+            navigator.clipboard.writeText(this.codeString);
+        },
 
 		baseChangeHandler(e) {
 			this.baseMode = e.target.value;
@@ -227,10 +238,6 @@ export default {
 				this.outputSize = this.outputText.length / 1024;
 				this.inputSize = this.inputText.length / 1024;
 			}
-		},
-
-		copyText() {
-			navigator.clipboard.writeText(this.inputText);
 		},
 	},
 };

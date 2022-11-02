@@ -1,7 +1,8 @@
 <template>
 	<fragment>
 		<div class="w-full h-full prose max-w-none min-h-[100vh]">
-			<h1>JS Playground</h1>
+			<h1>HTML/CSS/JS Playground</h1>
+
 			<div class="flex">
 				<div class="flex flex-1 flex-col w-full">
 					<div class="tabs tabs-boxed child:no-underline">
@@ -110,7 +111,13 @@
 					id="iFrame"
 				></iframe>
 			</div>
-			<button class="btn btn-primary">Save Code</button>
+
+            <p>
+                Note: output of js is not shown in the editor, but in the console.
+            </p>
+			<button class="btn btn-primary"
+            @click="saveCode"
+            >Download Code</button>
 		</div>
 	</fragment>
 </template>

@@ -9,127 +9,156 @@
 			rows="10"
 		></textarea>
 
-		<div class="controls child:m-2">
+		<!-- <div class="controls ">
 			<label for="fontsize-label">
-				<span> Max Font Size </span>
+				<span> Font Size Ratio </span>
 			</label>
 			<select
 				class="input input-select min-w-md"
 				name="fontsize"
 				@change="changeFontSize"
 			>
-				<option value="20">20</option>
-				<option value="30">30</option>
-				<option value="40">40</option>
-				<option value="50">50</option>
-				<option value="60">60</option>
-				<option value="80">80</option>
+				<option value="1">1</option>
+				<option value="2">2</option>
+				<option value="3">3</option>
+				<option value="4">4</option>
+				<option value="5">5</option>
+				<option value="6">6</option>
 			</select>
-			<button class="btn btn-outline" @click="clearText">Clear</button>
-			<button class="btn btn-outline" @click.stop="generateWordCloud">
-				Generate
-			</button>
+		</div> -->
+        <div class="child:m-2">
+            <button class="btn btn-outline" @click="clearText">Clear</button>
+            <button class="btn btn-outline" @click.stop="generateWordCloud">
+                Generate
+            </button>
+        </div>
+		<div class="controls child:m-2">
+			<label for="color-mode">
+				<span> Color Mode </span>
+			</label>
+			<select
+				class="input input-select min-w-md"
+				name="colormode"
+				v-model="colorMode"
+			>
+            <option value="white">White Only</option>
+				<option value="colorful">Colorful</option>
+				<option value="white-red">white/Red</option>
+				<option value="red">Red Only</option>
+				<option value="blue">Blue Only</option>
+				<option value="green">Green Only</option>
+			</select>
 		</div>
 
-		<wordcloud
-			:data="defaultWords"
-			nameKey="name"
-			valueKey="value"
-			:color="myColors"
-			:showTooltip="true"
-			:wordClick="wordClickHandler"
-			:fontSize="fontSize"
-            :scale="3"
-            spiral="rectangular"
-		>
-		</wordcloud>
+
+
+		<div class="flex items-center justify-center">
+			<VueWordCloud
+				style="height: 480px; width: 640px"
+				:words="defaultWords"
+				:color="colorFunction"
+				:spacing="spacing"
+				:font-size-ratio="fontSizeRatio"
+				font-family="Roboto"
+			>
+			</VueWordCloud>
+		</div> 
 	</div>
 </template>
 
 <script>
-import wordcloud from "vue-wordcloud";
+import VueWordCloud from "vuewordcloud";
+
 import stopwords from "@/data/stopwords";
 
 export default {
 	name: "wordCloudView",
 	components: {
-		wordcloud,
+		[VueWordCloud.name]: VueWordCloud,
 	},
 	data: () => ({
 		text: "",
-		fontSize: [20, 50],
-
-		myColors: ["#1f77b4", "#629fc9", "#94bedb", "#c9e0ef"],
-		defaultWords: [
-			{
-				name: "Cat",
-				value: 26,
-			},
-			{
-				name: "fish",
-				value: 19,
-			},
-			{
-				name: "things",
-				value: 18,
-			},
-			{
-				name: "look",
-				value: 16,
-			},
-			{
-				name: "two",
-				value: 15,
-			},
-			{
-				name: "fun",
-				value: 9,
-			},
-			{
-				name: "know",
-				value: 9,
-			},
-			{
-				name: "good",
-				value: 9,
-			},
-			{
-				name: "play",
-				value: 6,
-			},
-		],
+		spacing: 0.5,
+		fontSizeRatio: 1,
+		defaultWords: [],
+		colorMode: "white-red",
 	}),
 
-	watch: {},
+	watch: {
+		text() {
+			// update store with text
+			this.$store.commit("setWordcloudText", this.text);
+		},
+		colorMode() {
+            console.log(this.colorMode);
+		},
+	},
+
+	mounted() {
+		// get text from store
+		this.text = this.$store.state.wordcloudText;
+
+		this.generateWordCloud();
+	},
 
 	methods: {
 		clearText() {
 			this.text = "";
 		},
 
-        changeFontSize(e) {
-            this.fontSize = [10, Number(e.target.value)]
+        colorFunction(){
+            switch(this.colorMode){
+                case "colorful":
+                    return this.randomColor();
+                case "white-red":
+                    return this.whiteRedRandomColor();
+                case "white":
+                    return "white";
+                case "red":
+                    return "red";
+                case "blue":
+                    return "blue";
+                case "green":
+                    return "green";
+                default:
+                    return "random-dark";
+            }
         },
+
+		randomColor() {
+			return "#" + Math.floor(Math.random() * 16777215).toString(16);
+		},
+
+        whiteRedRandomColor(){
+            const list = ["white", "red"];
+            return list[Math.floor(Math.random() * list.length)];
+        },
+
+		changeFontSize(e) {
+			this.fontSize = Number(e.target.value);
+		},
 		generateWordCloud() {
-			this.defaultWords = this.text.split(" ").map((word) => {
-				// remove stop words
-				if (stopwords.includes(word)) {
-					return {
-						name: "",
-						value: 1,
-					};
+			const mywords = this.text.split(" ");
+
+			// count the frequency of each word
+			const wordCounts = mywords.reduce((acc, word) => {
+				if (acc[word]) {
+					acc[word] += 1;
+					acc[word] = acc[word] * 1.5;
 				} else {
-					return {
-						name: word,
-						value: 1,
-					};
+					acc[word] = 1;
 				}
+				return acc;
+			}, {});
+
+			// remove stopwords
+			stopwords.forEach((stopword) => {
+				delete wordCounts[stopword];
 			});
 
-			// remove empty words
-			this.defaultWords = this.defaultWords.filter((word) => {
-				return word.name !== "";
-			});
+			// convert to array
+			const wordArray = Object.entries(wordCounts);
+			this.defaultWords = wordArray;
 		},
 		wordClickHandler(word) {
 			console.log(word);
