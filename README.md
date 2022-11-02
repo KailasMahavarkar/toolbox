@@ -1,7 +1,5 @@
 # vue2
 
-![MarineGEO circle logo](/assets/img/MarineGEO_logo.png "MarineGEO logo"
-
 ## Project setup
 ```
 yarn install
@@ -10,6 +8,7 @@ yarn install
 ### Compiles and hot-reloads for development
 ```
 yarn serve
+
 ```
 
 ### Compiles and minifies for production
