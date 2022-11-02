@@ -64,7 +64,7 @@
 							</label>
 							<select
 								class="input input-bordered w-full max-w-xs"
-								@change="baseChangeHandler"
+								v-model="baseMode"
 							>
 								<option value="base64">base64</option>
 								<option value="base62">base62</option>
@@ -80,7 +80,7 @@
 							</label>
 							<select
 								class="input input-bordered w-full max-w-xs"
-								@change="toolmodeChangeHandler"
+								v-model="toolMode"
 							>
 								<option value="encrypt">encrypt</option>
 								<option value="decrypt">decrypt</option>
@@ -128,14 +128,15 @@
 			<div class="divider"></div>
 			<h1 class="ml-5">Code snippet (base62/64)</h1>
 
-			<div class="flex flex-col bg-base-300 px-5 rounded-md child:m-0 ">
-                <div class="flex items-center justify-end">
-                    <div class="btn btn-primary btn-xs mt-2 rounded-b-none"
-                        @click="copyCodeSnippet"
-                    >
-                        copy
-                    </div> 
-                </div>
+			<div class="flex flex-col bg-base-300 px-5 rounded-md child:m-0">
+				<div class="flex items-center justify-end">
+					<div
+						class="btn btn-primary btn-xs mt-2 rounded-b-none"
+						@click="copyCodeSnippet"
+					>
+						copy
+					</div>
+				</div>
 				<pre wrap="whitespace-normal">
                     <code >
                         {{ codeString }}
@@ -147,13 +148,8 @@
 </template>
 
 <script>
-import {
-	strToNumber,
-	numberToStr,
-	encoder,
-	decoder,
-	codeString,
-} from "@/logic/baseEncoder";
+import { codeString, base62, base64 } from "@/logic/baseEncoder";
+
 import editorMixin from "@/mixin/editorMixin";
 
 export default {
@@ -175,69 +171,56 @@ export default {
 		outputSize: 0,
 
 		codeString: codeString,
-
-		// code
-		code: {
-			encoder,
-			decoder,
-			strToNumber,
-			numberToStr,
-		},
 	}),
 	watch: {
 		inputText() {
 			this.handleChange();
+		},
+
+		toolMode() {
+			// output becomes input
+			this.inputText = this.outputText;
+			this.outputText = "";
+			// reset inputs
+			this.inputsize = this.outputSize;
+			this.outputsize = 0;
+
+            this.toolMode === "encrypt" ? this.baseMode = "base64" : this.baseMode = "base62"
+		},
+
+		baseMode() {
+			console.log("baseMode changed -->", this.baseMode);
+            this.handleChange();
 		},
 	},
 	methods: {
 		copyEncryptedText() {
 			navigator.clipboard.writeText(this.outputText);
 		},
-        copyCodeSnippet() {
-            navigator.clipboard.writeText(this.codeString);
-        },
-
-		baseChangeHandler(e) {
-			this.baseMode = e.target.value;
-		},
-		toolmodeChangeHandler() {
-			// output becomes input
-			this.inputText = this.outputText;
-			this.outputText = "";
-
-			// reset inputs
-			this.inputsize = 0;
-			this.outputsize = 0;
-
-			// change base encoder mode
-			this.baseMode = this.basemode === "base64" ? "base62" : "base64";
-
-			// change tool mode
-			this.toolMode = this.toolmode === "encrypt" ? "decrypt" : "encrypt";
+		copyCodeSnippet() {
+			navigator.clipboard.writeText(this.codeString);
 		},
 
 		handleChange() {
-			// boolean -> true means encrypt
-			if (this.toolMode === "encrypt") {
-				// encrypt
-				this.outputText = encoder(
-					strToNumber(this.inputText),
-					this.baseMode
-				);
+			this.inputSize = this.inputText.length / 1024;
 
-				// size
-				this.outputSize = this.outputText.length / 1024;
-				this.inputSize = this.inputText.length / 1024;
+			if (this.baseMode === "base62") {
+				// check encrypt or decrypt
+				if (this.toolMode === "encrypt") {
+					this.outputText = base62.encode(this.inputText);
+				} else {
+					this.outputText = base62.decode(this.inputText);
+				}
 			} else {
-				// decrypt
-				this.outputText = numberToStr(
-					decoder(this.outputText, this.baseMode)
-				);
-
-				// size
-				this.outputSize = this.outputText.length / 1024;
-				this.inputSize = this.inputText.length / 1024;
+				// check encrypt or decrypt
+				if (this.toolMode === "encrypt") {
+					this.outputText = base64.encode(this.inputText);
+				} else {
+					this.outputText = base64.decode(this.inputText);
+				}
 			}
+
+			this.outputSize = this.outputText.length / 1024;
 		},
 	},
 };
