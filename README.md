@@ -1,5 +1,7 @@
 # vue2
 
+![MarineGEO circle logo](/assets/img/MarineGEO_logo.png "MarineGEO logo"
+
 ## Project setup
 ```
 yarn install
