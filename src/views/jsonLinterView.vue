@@ -166,6 +166,7 @@ export default {
 
             try {
                 jsonLinter.parse(this.text);
+
                 this.isJSON = "valid";
                 this.error = "";
             } catch (e) {
